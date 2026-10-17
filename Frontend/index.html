@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartServer - Premium E-Commerce Marketplace</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .glass-header {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans text-slate-800 bg-slate-50 antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- TOP ANNOUNCEMENT BAR -->
+    <div class="bg-gradient-to-r from-brand-600 to-indigo-700 text-white text-xs font-medium py-2 px-4 text-center">
+        <span>⚡ Super Savings Week: Up to 50% Off across all categories! Free shipping on orders over $50.</span>
+    </div>
+
+    <!-- MAIN NAVBAR -->
+    <header class="sticky top-0 z-40 glass-header border-b border-slate-200/80 transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 gap-4">
+                
+                <!-- Logo -->
+                <div class="flex items-center gap-3 cursor-pointer" onclick="resetFilters()">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-brand-500/20 font-black text-xl tracking-wider">
+                        S
+                    </div>
+                    <div>
+                        <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-brand-700 to-indigo-600 bg-clip-text text-transparent">SmartServer</span>
+                        <span class="block text-[10px] font-semibold text-slate-400 -mt-1 tracking-widest uppercase">Marketplace</span>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="hidden md:flex flex-1 max-w-md mx-4 relative">
+                    <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search from 10,000+ items (e.g. iPhone, Sneakers, Coffee)..." 
+                        class="w-full pl-10 pr-4 py-2 text-sm bg-slate-100/80 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-slate-400 text-sm"></i>
+                </div>
+
+                <!-- Action Controls -->
+                <div class="flex items-center gap-3">
+                    <!-- Mobile Search Toggle Button -->
+                    <button onclick="toggleMobileSearch()" class="md:hidden p-2 rounded-full text-slate-600 hover:bg-slate-100">
+                        <i class="fa-solid fa-magnifying-glass text-lg"></i>
+                    </button>
+
+                    <!-- Nav Links -->
+                    <button onclick="switchView('shop')" class="px-3 py-1.5 rounded-full text-xs font-semibold text-slate-700 hover:text-brand-600 hover:bg-brand-50 transition">
+                        <i class="fa-solid fa-store mr-1"></i> Shop
+                    </button>
+                    <button onclick="switchView('repair')" class="px-3 py-1.5 rounded-full text-xs font-semibold text-slate-700 hover:text-brand-600 hover:bg-brand-50 transition flex items-center gap-1">
+                        <i class="fa-solid fa-wand-magic-sparkles text-brand-500"></i> AI Repair Scanner
+                    </button>
+                    <button onclick="switchView('tracker')" class="px-3 py-1.5 rounded-full text-xs font-semibold text-slate-700 hover:text-brand-600 hover:bg-brand-50 transition">
+                        <i class="fa-solid fa-truck-fast mr-1"></i> My Orders & Repairs
+                    </button>
+
+                    <!-- Auth Button -->
+                    <div id="authNavContainer">
+                        <button onclick="openAuthModal('login')" class="flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold text-slate-700 hover:text-brand-600 hover:bg-brand-50 transition">
+                            <i class="fa-regular fa-user"></i>
+                            <span class="hidden sm:inline">Sign In</span>
+                        </button>
+                    </div>
+
+                    <!-- Cart Toggle Button -->
+                    <button onclick="toggleCartDrawer()" class="relative flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-full text-xs shadow-sm transition-all hover:shadow-brand-500/25 active:scale-95">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <span class="hidden sm:inline font-semibold">Cart</span>
+                        <span id="cartBadge" class="ml-1 px-1.5 py-0.5 text-[10px] bg-white text-brand-700 font-bold rounded-full min-w-[18px] text-center">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Search Bar (Expandable) -->
+            <div id="mobileSearchContainer" class="hidden pb-3 md:hidden">
+                <div class="relative">
+                    <input type="text" id="mobileSearchInput" oninput="handleMobileSearch()" placeholder="Search products..." 
+                        class="w-full pl-10 pr-4 py-2 text-sm bg-slate-100 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-slate-400 text-sm"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- VIEW 1: SHOP & CATEGORIES -->
+    <div id="viewShop">
+        <!-- CATEGORIES BAR (10 ALL CATEGORIES) -->
+        <nav class="bg-white border-b border-slate-200 shadow-sm overflow-x-auto no-scrollbar">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex space-x-6 py-3 text-xs font-semibold whitespace-nowrap" id="categoriesContainer">
+                    <!-- Injected Dynamically by JS -->
+                </div>
+            </div>
+        </nav>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            
+            <!-- HERO BANNER -->
+            <section class="relative rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-brand-900 text-white p-6 sm:p-10 mb-8 overflow-hidden shadow-xl">
+                <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-brand-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 max-w-xl">
+                    <span class="inline-block px-3 py-1 bg-brand-500/20 text-brand-300 text-xs font-bold uppercase tracking-wider rounded-full mb-3 border border-brand-400/30">New Season Arrival</span>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">Discover Everything You Need in One Place.</h1>
+                    <p class="text-slate-300 text-sm sm:text-base mb-6 leading-relaxed">Shop top-tier brands across Mobiles, Electronics, Fashion, Home, Grocery, and more with verified delivery guarantees.</p>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="filterCategory('All')" class="px-6 py-2.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-xl shadow-lg transition transform active:scale-95">Explore Shop</button>
+                        <button onclick="switchView('repair')" class="px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold rounded-xl backdrop-blur-sm transition flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-brand-300"></i> AI Repair Diagnosis
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FILTERS & HEADER SECTION -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 id="currentCategoryTitle" class="text-2xl font-bold text-slate-900">All Products</h2>
+                    <p id="productCountText" class="text-xs text-slate-500 mt-0.5">Showing all items</p>
+                </div>
+                
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <select id="sortSelect" onchange="sortProducts()" class="w-full sm:w-auto px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="featured">Sort by: Featured</option>
+                        <option value="lowToHigh">Price: Low to High</option>
+                        <option value="highToLow">Price: High to Low</option>
+                        <option value="rating">Highest Rated</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- PRODUCT GRID -->
+            <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Dynamically Populated -->
+            </div>
+
+            <!-- EMPTY STATE -->
+            <div id="emptyState" class="hidden py-16 text-center">
+                <div class="w-20 h-20 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 text-2xl">
+                    <i class="fa-solid fa-box-open"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800">No products found</h3>
+                <p class="text-sm text-slate-500 mt-1">Try adjusting your search or category filter.</p>
+                <button onclick="resetFilters()" class="mt-4 px-4 py-2 bg-brand-600 text-white text-xs font-semibold rounded-lg hover:bg-brand-700">Clear Filters</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- VIEW 2: AI REPAIR SCANNER -->
+    <div id="viewRepair" class="hidden">
+        <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="text-center mb-8">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-100 text-brand-700 text-xs font-bold rounded-full mb-3">
+                    <i class="fa-solid fa-sparkles"></i> AI Instant Diagnostic Engine
+                </span>
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">AI Device & Appliance Repair Scanner</h1>
+                <p class="text-slate-500 text-sm mt-2 max-w-xl mx-auto">Upload or describe your malfunctioning tech or home appliance. Our AI auto-detects issues, estimates costs, and assigns local pick-up or on-site home technicians.</p>
+            </div>
+
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-2">1. Select Device / Appliance Category</label>
+                        <select id="repairCategory" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-brand-500">
+                            <option value="Mobile Phone">Mobile Phone (iPhone, Samsung, Pixel)</option>
+                            <option value="Laptop">Laptop / Computer</option>
+                            <option value="Tablet">Tablet / iPad</option>
+                            <option value="Smart TV">Smart TV / OLED Display (Bulky - On-Site)</option>
+                            <option value="Refrigerator">Refrigerator / Freezer (Bulky - On-Site)</option>
+                            <option value="Washing Machine">Washing Machine / Dryer (Bulky - On-Site)</option>
+                            <option value="Audio / Headphones">Headphones / Audio Gear</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-2">2. Upload Photo / Diagnostic Screenshot</label>
+                        <div class="border-2 border-dashed border-slate-300 hover:border-brand-500 rounded-xl p-3 text-center cursor-pointer bg-slate-50/50 transition">
+                            <i class="fa-solid fa-cloud-arrow-up text-brand-600 text-xl mb-1"></i>
+                            <p class="text-[11px] text-slate-500 font-medium">Click to attach image or screen capture</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-xs font-bold text-slate-700 mb-2">3. Describe Symptoms or Malfunction</label>
+                    <textarea id="repairDesc" rows="3" placeholder="e.g. Broken cracked glass screen, battery draining rapidly, or washing machine drum leaking water..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-500"></textarea>
+                </div>
+
+                <button onclick="runAIRepairScan()" class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs shadow-lg shadow-brand-500/25 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Run AI Diagnosis & Service Estimate
+                </button>
+
+                <!-- REPAIR DIAGNOSIS RESULT BOX -->
+                <div id="repairResult" class="hidden mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">AI Assessment Summary</span>
+                        <span id="repairServiceTypeBadge" class="px-3 py-1 bg-emerald-100 text-emerald-800 text-[11px] font-bold rounded-full">--</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                        <div class="bg-white p-3 rounded-xl border border-slate-200">
+                            <span class="text-slate-400 block mb-1">Detected Issue</span>
+                            <span id="resIssue" class="font-bold text-slate-800">--</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-slate-200">
+                            <span class="text-slate-400 block mb-1">Est. Repair Cost</span>
+                            <span id="resCost" class="font-bold text-brand-600 text-sm">--</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-slate-200">
+                            <span class="text-slate-400 block mb-1">Estimated Turnaround</span>
+                            <span id="resTime" class="font-bold text-slate-800">--</span>
+                        </div>
+                    </div>
+
+                    <p id="resServiceNote" class="text-xs text-slate-600 leading-relaxed bg-brand-50/50 p-3 rounded-xl border border-brand-100">--</p>
+
+                    <button onclick="bookRepairService()" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-md transition">
+                        Confirm & Book Service Appointment
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- VIEW 3: USER REPAIR & ORDER TRACKER -->
+    <div id="viewTracker" class="hidden">
+        <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-slate-900">My Orders & Repair Requests</h1>
+                <p class="text-xs text-slate-500 mt-1">Track active deliveries, repair pick-ups, and technician visit schedules in real time.</p>
+            </div>
+
+            <div id="trackerContainer" class="space-y-4">
+                <!-- Dynamically populated tracker items -->
+            </div>
+        </main>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-900 text-slate-400 text-sm mt-16 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div class="space-y-3">
+                <div class="flex items-center gap-2 text-white font-extrabold text-lg">
+                    <div class="w-7 h-7 rounded-lg bg-brand-600 flex items-center justify-center text-xs">S</div>
+                    SmartServer
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">Your one-stop premium marketplace for authentic electronics, lifestyle gear, apparel, and everyday essentials.</p>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold text-xs tracking-wider uppercase mb-3">Shop Categories</h4>
+                <ul class="space-y-2 text-xs">
+                    <li><a href="#" onclick="filterCategory('Mobiles & Tablets')" class="hover:text-white">Mobiles & Tech</a></li>
+                    <li><a href="#" onclick="filterCategory('Clothing')" class="hover:text-white">Fashion & Apparel</a></li>
+                    <li><a href="#" onclick="filterCategory('Home Appliances')" class="hover:text-white">Home & Appliances</a></li>
+                    <li><a href="#" onclick="filterCategory('Grocery')" class="hover:text-white">Grocery & Staples</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold text-xs tracking-wider uppercase mb-3">Customer Support</h4>
+                <ul class="space-y-2 text-xs">
+                    <li><a href="#" class="hover:text-white">Order Tracking</a></li>
+                    <li><a href="#" class="hover:text-white">Return & Refund Policy</a></li>
+                    <li><a href="#" class="hover:text-white">Terms of Service</a></li>
+                    <li><a href="#" class="hover:text-white">Help Center</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold text-xs tracking-wider uppercase mb-3">Newsletter</h4>
+                <p class="text-xs text-slate-400 mb-3">Subscribe for exclusive flash sales and coupons.</p>
+                <div class="flex gap-2">
+                    <input type="email" placeholder="Your email..." class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-brand-500 w-full">
+                    <button class="bg-brand-600 hover:bg-brand-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold">Join</button>
+                </div>
+            </div>
+        </div>
+        <div class="border-t border-slate-800 py-4 text-center text-xs text-slate-500">
+            &copy; 2026 SmartServer E-Commerce Inc. All rights reserved.
+        </div>
+    </footer>
+
+    <!-- CART SIDE DRAWER -->
+    <div id="cartBackdrop" onclick="toggleCartDrawer()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+    <aside id="cartDrawer" class="fixed top-0 right-0 bottom-0 w-full max-w-md bg-white z-50 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-bag-shopping text-brand-600"></i>
+                <h3 class="font-bold text-slate-800">Your Shopping Cart</h3>
+            </div>
+            <button onclick="toggleCartDrawer()" class="p-2 text-slate-400 hover:text-slate-600 rounded-full">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Cart Items List -->
+        <div id="cartList" class="flex-grow overflow-y-auto p-4 space-y-4">
+            <!-- Dynamically Filled -->
+        </div>
+
+        <!-- Cart Summary Footer -->
+        <div class="p-4 border-t border-slate-200 bg-slate-50 space-y-3">
+            <div class="flex justify-between text-xs text-slate-500">
+                <span>Subtotal</span>
+                <span id="cartSubtotal" class="font-semibold text-slate-700">$0.00</span>
+            </div>
+            <div class="flex justify-between text-xs text-slate-500">
+                <span>Estimated Shipping</span>
+                <span id="cartShipping" class="font-semibold text-emerald-600">FREE</span>
+            </div>
+            <div class="flex justify-between text-sm font-bold text-slate-900 pt-2 border-t border-slate-200">
+                <span>Total</span>
+                <span id="cartTotal" class="text-brand-600 text-lg">$0.00</span>
+            </div>
+            <button onclick="openCheckoutModal()" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-brand-500/25 transition active:scale-98">
+                Proceed to Checkout
+            </button>
+        </div>
+    </aside>
+
+    <!-- AUTH MODAL (Login / Signup) -->
+    <div id="authModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 relative overflow-hidden">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <!-- Tabs -->
+            <div class="flex border-b border-slate-200 mb-6">
+                <button id="tabLogin" onclick="switchAuthTab('login')" class="flex-1 pb-3 text-sm font-bold border-b-2 border-brand-600 text-brand-600">Sign In</button>
+                <button id="tabSignup" onclick="switchAuthTab('signup')" class="flex-1 pb-3 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-600">Create Account</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="formLogin" onsubmit="handleAuthSubmit(event, 'login')" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Email Address</label>
+                    <input type="email" required placeholder="alex@example.com" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
+                    <input type="password" required placeholder="••••••••" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                    <label class="flex items-center gap-2 text-slate-500">
+                        <input type="checkbox" class="rounded text-brand-600 focus:ring-brand-500"> Remember me
+                    </label>
+                    <a href="#" class="text-brand-600 hover:underline font-semibold">Forgot password?</a>
+                </div>
+                <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-md text-sm transition">Sign In</button>
+            </form>
+
+            <!-- Signup Form -->
+            <form id="formSignup" onsubmit="handleAuthSubmit(event, 'signup')" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Full Name</label>
+                    <input type="text" required placeholder="Alex Johnson" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Email Address</label>
+                    <input type="email" required placeholder="alex@example.com" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Create Password</label>
+                    <input type="password" required placeholder="••••••••" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-md text-sm transition">Register Account</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- CHECKOUT MODAL -->
+    <div id="checkoutModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 relative my-8">
+            <button onclick="closeCheckoutModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 class="text-xl font-bold text-slate-900 mb-1">Complete Your Order</h3>
+            <p class="text-xs text-slate-500 mb-6">Safe & encrypted 256-bit checkout</p>
+
+            <form onsubmit="completeOrder(event)" class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">First Name</label>
+                        <input type="text" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Last Name</label>
+                        <input type="text" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Shipping Address</label>
+                    <input type="text" required placeholder="123 Main Street, Apt 4B" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">City</label>
+                        <input type="text" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Postal Code</label>
+                        <input type="text" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Payment Method</label>
+                    <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                        <label class="border border-brand-500 bg-brand-50 p-2.5 rounded-xl cursor-pointer font-semibold text-brand-700">
+                            <i class="fa-regular fa-credit-card block mb-1"></i> Card
+                        </label>
+                        <label class="border border-slate-200 p-2.5 rounded-xl cursor-pointer font-semibold text-slate-600">
+                            <i class="fa-brands fa-paypal block mb-1"></i> PayPal
+                        </label>
+                        <label class="border border-slate-200 p-2.5 rounded-xl cursor-pointer font-semibold text-slate-600">
+                            <i class="fa-solid fa-money-bill-transfer block mb-1"></i> COD
+                        </label>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-200 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs text-slate-500 block">Total Payable</span>
+                        <span id="checkoutTotalText" class="text-xl font-extrabold text-brand-600">$0.00</span>
+                    </div>
+                    <button type="submit" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-lg transition">
+                        Place Order Now
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION TOAST -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs font-semibold">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toastMsg">Notification message</span>
+    </div>
+
+    <!-- APPLICATION LOGIC JS -->
+    <script>
+        // ALL 10 CATEGORIES
+        const categories = [
+            { name: "All", icon: "fa-border-all" },
+            { name: "Mobiles & Tablets", icon: "fa-mobile-screen-button" },
+            { name: "Laptops & Computers", icon: "fa-laptop" },
+            { name: "Electronics", icon: "fa-plug" },
+            { name: "Clothing", icon: "fa-shirt" },
+            { name: "Footwear", icon: "fa-shoe-prints" },
+            { name: "Grocery", icon: "fa-basket-shopping" },
+            { name: "Home Appliances", icon: "fa-tv" },
+            { name: "Books & Stationery", icon: "fa-book" },
+            { name: "Beauty Products", icon: "fa-pump-soap" },
+            { name: "Accessories", icon: "fa-headphones" }
+        ];
+
+        // MOCK PRODUCT CATALOG
+        const products = [
+            { id: 1, name: "iPhone 15 Pro Max 256GB", category: "Mobiles & Tablets", price: 1199, rating: 4.9, image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500&q=80", badge: "Best Seller" },
+            { id: 2, name: "MacBook Pro 16\" M3 Max", category: "Laptops & Computers", price: 2499, rating: 5.0, image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&q=80", badge: "Top Tier" },
+            { id: 3, name: "Sony WH-1000XM5 ANC Headphones", category: "Accessories", price: 349, rating: 4.8, image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80", badge: "Sale" },
+            { id: 4, name: "Organic Ethiopian Arabica Coffee 1kg", category: "Grocery", price: 24, rating: 4.7, image: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=500&q=80", badge: "Fresh" },
+            { id: 5, name: "Classic Denim Jackets Collection", category: "Clothing", price: 79, rating: 4.5, image: "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=500&q=80", badge: "Popular" },
+            { id: 6, name: "Nike Air Max Pulse Sneakers", category: "Footwear", price: 150, rating: 4.8, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80", badge: "Trending" },
+            { id: 7, name: "Dyson V15 Detect Cordless Vacuum", category: "Home Appliances", price: 699, rating: 4.9, image: "https://images.unsplash.com/photo-1558317374-067fb5f30001?w=500&q=80", badge: "Hot" },
+            { id: 8, name: "Minimalist Hardcover Planner Notebook", category: "Books & Stationery", price: 18, rating: 4.6, image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&q=80", badge: "Essential" },
+            { id: 9, name: "Hydrating Facial Serum Kit", category: "Beauty Products", price: 45, rating: 4.7, image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=500&q=80", badge: "Glow" },
+            { id: 10, name: "Samsung 4K Smart OLED TV 65\"", category: "Electronics", price: 1399, rating: 4.9, image: "https://images.unsplash.com/photo-1593784991095-a205069470b6?w=500&q=80", badge: "4K UHD" },
+            { id: 11, name: "iPad Air M2 11-inch", category: "Mobiles & Tablets", price: 599, rating: 4.8, image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=500&q=80", badge: "New" },
+            { id: 12, name: "Logitech MX Master 3S Wireless Mouse", category: "Accessories", price: 99, rating: 4.9, image: "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=500&q=80", badge: "Pro" }
+        ];
+
+        // MOCK USER REPAIR & ORDER TRACKING DATA
+        let userTrackers = [
+            { id: "ORD-98211", type: "Order", item: "iPhone 15 Pro Max", status: "In Transit", date: "Oct 16, 2026", desc: "Out for courier delivery. Estimated arrival today by 6 PM." },
+            { id: "REP-4402", type: "Repair", item: "Samsung 65\" OLED TV", status: "On-Site Scheduled", date: "Oct 17, 2026", desc: "Technician assigned (Dave M.). On-site home inspection booked for tomorrow 10:00 AM." }
+        ];
+
+        // APP STATE
+        let activeCategory = "All";
+        let cart = [];
+        let currentUser = null;
+        let pendingRepairBooking = null;
+
+        // INITIALIZATION
+        window.onload = function() {
+            renderCategoryBar();
+            renderProducts();
+            renderTrackerList();
+        };
+
+        // VIEW NAVIGATION
+        function switchView(viewName) {
+            document.getElementById('viewShop').classList.add('hidden');
+            document.getElementById('viewRepair').classList.add('hidden');
+            document.getElementById('viewTracker').classList.add('hidden');
+
+            if (viewName === 'shop') document.getElementById('viewShop').classList.remove('hidden');
+            if (viewName === 'repair') document.getElementById('viewRepair').classList.remove('hidden');
+            if (viewName === 'tracker') {
+                renderTrackerList();
+                document.getElementById('viewTracker').classList.remove('hidden');
+            }
+        }
+
+        // RENDER CATEGORIES
+        function renderCategoryBar() {
+            const container = document.getElementById('categoriesContainer');
+            container.innerHTML = categories.map(cat => {
+                const isActive = cat.name === activeCategory;
+                const activeClass = isActive 
+                    ? 'bg-brand-600 text-white shadow-sm' 
+                    : 'text-slate-600 bg-slate-100 hover:bg-slate-200';
+                return `
+                    <button onclick="filterCategory('${cat.name}')" class="flex items-center gap-2 px-3.5 py-1.5 rounded-full transition-all ${activeClass}">
+                        <i class="fa-solid ${cat.icon} text-xs"></i>
+                        <span>${cat.name}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        // FILTER & SORT PRODUCTS
+        function filterCategory(catName) {
+            activeCategory = catName;
+            document.getElementById('currentCategoryTitle').innerText = catName === 'All' ? 'All Products' : catName;
+            renderCategoryBar();
+            renderProducts();
+        }
+
+        function getFilteredProducts() {
+            const query = (document.getElementById('searchInput').value || document.getElementById('mobileSearchInput').value || '').toLowerCase();
+            return products.filter(p => {
+                const matchesCategory = activeCategory === 'All' || p.category === activeCategory;
+                const matchesSearch = p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query);
+                return matchesCategory && matchesSearch;
+            });
+        }
+
+        function sortProducts() {
+            renderProducts();
+        }
+
+        function renderProducts() {
+            let filtered = getFilteredProducts();
+            const sortVal = document.getElementById('sortSelect').value;
+
+            if (sortVal === 'lowToHigh') filtered.sort((a,b) => a.price - b.price);
+            if (sortVal === 'highToLow') filtered.sort((a,b) => b.price - a.price);
+            if (sortVal === 'rating') filtered.sort((a,b) => b.rating - a.rating);
+
+            const grid = document.getElementById('productGrid');
+            const empty = document.getElementById('emptyState');
+            document.getElementById('productCountText').innerText = `Showing ${filtered.length} products`;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+
+            empty.classList.add('hidden');
+            grid.innerHTML = filtered.map(p => `
+                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group">
+                    <div class="relative overflow-hidden aspect-square bg-slate-100">
+                        <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://placehold.co/400x400/e2e8f0/64748b?text=SmartServer'">
+                        <span class="absolute top-3 left-3 px-2.5 py-1 bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-bold rounded-full uppercase tracking-wider">
+                            ${p.badge}
+                        </span>
+                    </div>
+                    <div class="p-4 flex flex-col flex-grow">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-brand-600 mb-1">${p.category}</span>
+                        <h3 class="font-bold text-slate-800 text-sm mb-1 line-clamp-1 group-hover:text-brand-600 transition">${p.name}</h3>
+                        <div class="flex items-center gap-1 text-amber-400 text-xs mb-3">
+                            <i class="fa-solid fa-star"></i>
+                            <span class="font-semibold text-slate-700 ml-1">${p.rating}</span>
+                        </div>
+                        <div class="mt-auto flex items-center justify-between pt-2 border-t border-slate-100">
+                            <span class="text-lg font-extrabold text-slate-900">$${p.price}</span>
+                            <button onclick="addToCart(${p.id})" class="px-3 py-2 bg-brand-50 hover:bg-brand-600 text-brand-600 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 active:scale-95">
+                                <i class="fa-solid fa-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // AI REPAIR SCANNER LOGIC
+        function runAIRepairScan() {
+            const cat = document.getElementById('repairCategory').value;
+            const desc = document.getElementById('repairDesc').value || "General hardware wear & inspection";
+            
+            const isBulky = ["Smart TV", "Refrigerator", "Washing Machine"].includes(cat);
+            const cost = isBulky ? "$120 - $280" : "$45 - $110";
+            const time = isBulky ? "Same-Day Home Technician Visit" : "24-48 Hours Pick-Up Repair";
+            const serviceType = isBulky ? "On-Site Home Repair" : "Carry-In / Free Courier Pick-Up";
+
+            document.getElementById('resIssue').innerText = desc.slice(0, 35) + "...";
+            document.getElementById('resCost').innerText = cost;
+            document.getElementById('resTime').innerText = time;
+            document.getElementById('repairServiceTypeBadge').innerText = serviceType;
+            
+            document.getElementById('resServiceNote').innerHTML = isBulky 
+                ? `<strong>Bulky Item Detected:</strong> Because this is a heavy home appliance (${cat}), our certified technician will visit your home address with OEM replacement parts.`
+                : `<strong>Portable Device:</strong> You can drop this off at any SmartServer Hub or schedule a free courier pick-up from your home.`;
+
+            pendingRepairBooking = {
+                id: `REP-${Math.floor(1000 + Math.random() * 9000)}`,
+                type: "Repair",
+                item: `${cat} (${desc.slice(0, 20)}...)`,
+                status: isBulky ? "On-Site Scheduled" : "Pick-Up Scheduled",
+                date: "Today",
+                desc: isBulky ? "Certified technician assigned for home service inspection." : "Courier pick-up scheduled from your location."
+            };
+
+            document.getElementById('repairResult').classList.remove('hidden');
+        }
+
+        function bookRepairService() {
+            if (!pendingRepairBooking) return;
+            userTrackers.unshift(pendingRepairBooking);
+            showToast(`Repair appointment booked! Tracking ID: ${pendingRepairBooking.id}`);
+            switchView('tracker');
+        }
+
+        // RENDER TRACKER LIST
+        function renderTrackerList() {
+            const container = document.getElementById('trackerContainer');
+            if (userTrackers.length === 0) {
+                container.innerHTML = `<p class="text-sm text-slate-400 py-8 text-center">No active orders or repair bookings found.</p>`;
+                return;
+            }
+
+            container.innerHTML = userTrackers.map(t => `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-xs font-bold px-2.5 py-0.5 rounded-md ${t.type === 'Repair' ? 'bg-indigo-100 text-indigo-700' : 'bg-brand-100 text-brand-700'}">${t.type}</span>
+                            <span class="text-xs font-mono font-bold text-slate-400">${t.id}</span>
+                            <span class="text-[10px] text-slate-400">• ${t.date}</span>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-sm">${t.item}</h4>
+                        <p class="text-xs text-slate-500 mt-1">${t.desc}</p>
+                    </div>
+                    <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-0 pt-3 sm:pt-0 border-slate-100">
+                        <span class="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-bold flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> ${t.status}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // SEARCH HANDLERS
+        function handleSearch() { switchView('shop'); renderProducts(); }
+        function handleMobileSearch() { switchView('shop'); renderProducts(); }
+        function toggleMobileSearch() {
+            const container = document.getElementById('mobileSearchContainer');
+            container.classList.toggle('hidden');
+        }
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('mobileSearchInput').value = '';
+            activeCategory = 'All';
+            renderCategoryBar();
+            renderProducts();
+        }
+
+        // CART MANAGEMENT
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            const existing = cart.find(item => item.id === productId);
+            if (existing) {
+                existing.qty++;
+            } else {
+                cart.push({ ...product, qty: 1 });
+            }
+            updateCartUI();
+            showToast(`Added "${product.name}" to cart`);
+        }
+
+        function updateCartQty(productId, delta) {
+            const item = cart.find(i => i.id === productId);
+            if (!item) return;
+            item.qty += delta;
+            if (item.qty <= 0) {
+                cart = cart.filter(i => i.id !== productId);
+            }
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const cartList = document.getElementById('cartList');
+            const totalQty = cart.reduce((acc, item) => acc + item.qty, 0);
+            const subtotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+
+            document.getElementById('cartBadge').innerText = totalQty;
+            document.getElementById('cartSubtotal').innerText = `$${subtotal.toFixed(2)}`;
+            document.getElementById('cartTotal').innerText = `$${subtotal.toFixed(2)}`;
+            document.getElementById('checkoutTotalText').innerText = `$${subtotal.toFixed(2)}`;
+
+            if (cart.length === 0) {
+                cartList.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center text-slate-400 py-12">
+                        <i class="fa-solid fa-basket-shopping text-4xl mb-2"></i>
+                        <p class="text-sm">Your cart is empty.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            cartList.innerHTML = cart.map(item => `
+                <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                    <img src="${item.image}" class="w-14 h-14 object-cover rounded-xl bg-white">
+                    <div class="flex-grow min-w-0">
+                        <h4 class="text-xs font-bold text-slate-800 truncate">${item.name}</h4>
+                        <span class="text-xs text-brand-600 font-semibold">$${item.price}</span>
+                    </div>
+                    <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2 py-1">
+                        <button onclick="updateCartQty(${item.id}, -1)" class="text-slate-400 hover:text-slate-700 text-xs"><i class="fa-solid fa-minus"></i></button>
+                        <span class="text-xs font-bold w-4 text-center">${item.qty}</span>
+                        <button onclick="updateCartQty(${item.id}, 1)" class="text-slate-400 hover:text-slate-700 text-xs"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleCartDrawer() {
+            const drawer = document.getElementById('cartDrawer');
+            const backdrop = document.getElementById('cartBackdrop');
+            const isOpen = !drawer.classList.contains('translate-x-full');
+            if (isOpen) {
+                drawer.classList.add('translate-x-full');
+                backdrop.classList.add('opacity-0', 'pointer-events-none');
+            } else {
+                drawer.classList.remove('translate-x-full');
+                backdrop.classList.remove('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        // AUTH MODAL
+        function openAuthModal(mode) {
+            switchAuthTab(mode);
+            document.getElementById('authModal').classList.remove('hidden');
+        }
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+        }
+        function switchAuthTab(tab) {
+            const loginBtn = document.getElementById('tabLogin');
+            const signupBtn = document.getElementById('tabSignup');
+            const loginForm = document.getElementById('formLogin');
+            const signupForm = document.getElementById('formSignup');
+
+            if (tab === 'login') {
+                loginBtn.className = "flex-1 pb-3 text-sm font-bold border-b-2 border-brand-600 text-brand-600";
+                signupBtn.className = "flex-1 pb-3 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-600";
+                loginForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+            } else {
+                signupBtn.className = "flex-1 pb-3 text-sm font-bold border-b-2 border-brand-600 text-brand-600";
+                loginBtn.className = "flex-1 pb-3 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-600";
+                signupForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+            }
+        }
+        function handleAuthSubmit(e, mode) {
+            e.preventDefault();
+            currentUser = { name: mode === 'login' ? 'Alex Johnson' : 'New User' };
+            document.getElementById('authNavContainer').innerHTML = `
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-full">
+                    <div class="w-6 h-6 rounded-full bg-brand-600 text-white flex items-center justify-center text-[10px]">
+                        ${currentUser.name.charAt(0)}
+                    </div>
+                    <span>${currentUser.name}</span>
+                </div>
+            `;
+            closeAuthModal();
+            showToast(mode === 'login' ? 'Welcome back!' : 'Account created successfully!');
+        }
+
+        // CHECKOUT MODAL
+        function openCheckoutModal() {
+            if (cart.length === 0) {
+                showToast('Your cart is empty!');
+                return;
+            }
+            toggleCartDrawer();
+            document.getElementById('checkoutModal').classList.remove('hidden');
+        }
+        function closeCheckoutModal() {
+            document.getElementById('checkoutModal').classList.add('hidden');
+        }
+        function completeOrder(e) {
+            e.preventDefault();
+            const orderId = `ORD-${Math.floor(10000 + Math.random() * 90000)}`;
+            userTrackers.unshift({
+                id: orderId,
+                type: "Order",
+                item: `${cart.length} item(s) purchased`,
+                status: "Processing Order",
+                date: "Just now",
+                desc: "Order confirmed. Dispatch preparation in progress."
+            });
+            cart = [];
+            updateCartUI();
+            closeCheckoutModal();
+            showToast('🎉 Order placed successfully! Added to your order tracker.');
+            switchView('tracker');
+        }
+
+        // TOAST NOTIFICATIONS
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
