@@ -15,29 +15,37 @@ const User = require('../models/User');
 const Product = require('../models/Product');
 const RepairBooking = require('../models/RepairBooking');
 
+// MongoDB connection
+const MONGO_URI = process.env.MONGO_URI;
+
+if (!MONGO_URI) {
+  console.error('Error: MONGO_URI is missing from environment variables.');
+} else {
+  mongoose
+    .connect(MONGO_URI)
+    .then(() => console.log('MongoDB connected successfully'))
+    .catch((err) => {
+      console.error('MongoDB connection error:', err.message);
+    });
+}
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
-    message: 'SmartSaver API is running!'
+    message: 'SmartMart API is running!'
   });
 });
 
 // Signup
 app.post('/api/auth/signup', async (req, res) => {
   try {
-    const {
-      fullName,
-      email,
-      mobileNumber,
-      password,
-      address
-    } = req.body;
+    const { fullName, email, mobileNumber, password, address } = req.body;
 
     if (!fullName || !email || !password) {
       return res.status(400).json({
         success: false,
-        error: 'Full name, email, and password are required'
+        error: 'Full name, email, and password are required.'
       });
     }
 
@@ -46,7 +54,7 @@ app.post('/api/auth/signup', async (req, res) => {
     if (existingUser) {
       return res.status(409).json({
         success: false,
-        error: 'Email already registered'
+        error: 'Email already registered.'
       });
     }
 
@@ -62,7 +70,7 @@ app.post('/api/auth/signup', async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Account created successfully',
+      message: 'Account created successfully.',
       user: {
         id: newUser._id,
         fullName: newUser.fullName,
@@ -76,7 +84,7 @@ app.post('/api/auth/signup', async (req, res) => {
 
     res.status(500).json({
       success: false,
-      error: 'Unable to create account'
+      error: 'Unable to create account.'
     });
   }
 });
@@ -89,24 +97,24 @@ app.post('/api/auth/login', async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        error: 'Email and password are required'
+        error: 'Email and password are required.'
       });
     }
 
     const user = await User.findOne({ email });
 
-    // This comparison only works with existing plain-text passwords.
-    // Use bcrypt hashing before using real accounts in production.
+    // This comparison assumes your existing model stores plain-text
+    // passwords. Replace it with bcrypt verification before production.
     if (!user || user.password !== password) {
       return res.status(401).json({
         success: false,
-        error: 'Invalid email or password'
+        error: 'Invalid email or password.'
       });
     }
 
-    res.json({
+    res.status(200).json({
       success: true,
-      message: 'Login successful',
+      message: 'Login successful.',
       user: {
         id: user._id,
         fullName: user.fullName,
@@ -120,7 +128,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     res.status(500).json({
       success: false,
-      error: 'Unable to log in'
+      error: 'Unable to log in.'
     });
   }
 });
@@ -128,10 +136,9 @@ app.post('/api/auth/login', async (req, res) => {
 // Get products
 app.get('/api/products', async (req, res) => {
   try {
-    const products = await Product.find()
-      .sort({ createdAt: -1 });
+    const products = await Product.find().sort({ createdAt: -1 });
 
-    res.json({
+    res.status(200).json({
       success: true,
       products
     });
@@ -140,7 +147,7 @@ app.get('/api/products', async (req, res) => {
 
     res.status(500).json({
       success: false,
-      error: 'Unable to fetch products'
+      error: 'Unable to fetch products.'
     });
   }
 });
@@ -157,15 +164,10 @@ app.post('/api/bookings/create', async (req, res) => {
       serviceAddress
     } = req.body;
 
-    if (
-      !userId ||
-      !deviceCategory ||
-      !deviceModel ||
-      !issueDescription
-    ) {
+    if (!userId || !deviceCategory || !deviceModel || !issueDescription) {
       return res.status(400).json({
         success: false,
-        error: 'Required booking details are missing'
+        error: 'User, device category, device model, and issue description are required.'
       });
     }
 
@@ -195,6 +197,7 @@ app.post('/api/bookings/create', async (req, res) => {
 
     res.status(201).json({
       success: true,
+      message: 'Repair booking created successfully.',
       booking
     });
   } catch (err) {
@@ -202,19 +205,19 @@ app.post('/api/bookings/create', async (req, res) => {
 
     res.status(500).json({
       success: false,
-      error: 'Unable to create repair booking'
+      error: 'Unable to create repair booking.'
     });
   }
 });
 
-// Get repair bookings for a user
+// Get bookings for a user
 app.get('/api/bookings/user/:userId', async (req, res) => {
   try {
     const bookings = await RepairBooking.find({
       userId: req.params.userId
     }).sort({ createdAt: -1 });
 
-    res.json({
+    res.status(200).json({
       success: true,
       bookings
     });
@@ -223,51 +226,19 @@ app.get('/api/bookings/user/:userId', async (req, res) => {
 
     res.status(500).json({
       success: false,
-      error: 'Unable to fetch repair bookings'
+      error: 'Unable to fetch bookings.'
     });
   }
 });
 
 // Root route
 app.get('/', (req, res) => {
-  res.send('SmartSaver Backend is Live!');
+  res.send('SmartMart Backend is Live!');
 });
 
-// Start server after connecting to MongoDB
+// Start server
 const PORT = process.env.PORT || 5000;
 
-async function startServer() {
-  try {
-    if (!process.env.MONGO_URI) {
-      throw new Error(
-        'MONGO_URI is missing from environment variables'
-      );
-    }
-
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('MongoDB connected successfully');
-
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`SmartSaver server running on port ${PORT}`);
-    });
-  } catch (err) {
-    console.error('Server startup failed:', err.message);
-    process.exit(1);
-  }
-}
-
-startServer();
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-require('dotenv').config();
-
-const app = express();
-
-app.use(cors());
-app.use(express.json());
-
-// Models
-const User = require('../models/User');
-const Product = require('../models/Product');
-const RepairBooking = require('../models/RepairBooking');
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`SmartMart server running on port ${PORT}`);
+});
