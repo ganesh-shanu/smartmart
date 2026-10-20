@@ -1,10 +1,10 @@
 {
   "name": "smartmart-backend",
   "version": "1.0.0",
-  "description": "SmartMart Backend Server",
-  "main": "server.js",
+  "description": "SmartSaver backend server",
+  "main": "server/server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server/server.js"
   },
   "dependencies": {
     "express": "^4.19.2",
@@ -13,4 +13,3 @@
     "dotenv": "^16.4.5"
   }
 }
-
